@@ -1,0 +1,23 @@
+{
+  "name": "convey",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha spec",
+    "convey": "nodemon testing-convey.js",
+    "express": "nodemon ./express/index.js",
+    "node-server": "nodemon ./node-server/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "express": "^4.17.1",
+    "mocha": "^6.2.2",
+    "sinon": "^7.5.0",
+    "supertest": "^4.0.2"
+  }
+}
