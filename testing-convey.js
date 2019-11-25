@@ -2,12 +2,18 @@ const convey = require("./convey");
 
 const app = convey();
 
-// app.use((req, res) => {
-//   console.log(res);
-//   res.send("booo!");
-// });
+app.use((req, res, next) => {
+  console.log("use middleware");
+  // res.send("booo!");
+  next();
+});
 
 app.use(convey.bodyParser);
+
+app.get("/hello", (req, res, next) => {
+  res.status(400);
+  next();
+});
 
 app.get("/hello", (req, res) => {
   res.send("well hello there!");
