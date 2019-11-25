@@ -6,5 +6,8 @@ My own implementation of express
 - [x] middlewares should be queue-able
 - [x] use - add middlware
 - [x] default not found error sent
+- [ ] req/res parser by adding express-style properties/methods
+- [ ] parameterised endpoints
+- [ ] queries for endpoints
 - [ ] error handling middleware can be added
 - [ ] Routers
