@@ -1,4 +1,4 @@
-const http = require("http");
+const http = require('http');
 
 class Convey {
   constructor() {
@@ -9,6 +9,7 @@ class Convey {
     this.__intialQueue = [];
     //__pathQueues contain middleware functions provided by user under { '/path': { ['METHOD']: [middFunc1, middFunc2] } }
     this.__pathQueues = {};
+    this.__middlewareQueue = [];
     //__secondaryUseQueue constains middleware functions passed to .use that can be used when there is no path to take
     this.__secondaryUseQueue = [];
     this.responseSent = false;
@@ -20,16 +21,19 @@ class Convey {
       //for default pathNotFound response, __responseSent is required to prevent repeat calls
       this.__responseSent = false;
       //some parsing of the req/res as it comes in...
-      this.__response.send = data => {
+      this.__response.send = (data) => {
         this.__response.write(data);
         this.__response.end();
         this.__responseSent = true;
+        return this.__response;
       };
-      this.__response.status = statusCode => {
+      this.__response.status = (statusCode) => {
+        // console.log(this);
         this.__response.statusCode = statusCode;
+        return this.__response;
       };
       this.__request.path = request.url;
-      this.__conveyRequestHandler();
+      this.__nextMiddlewareHandler();
     });
   }
 
@@ -43,70 +47,46 @@ class Convey {
     this.__response.send(`Cannot ${method} ${path}`);
   }
   __nextMiddlewareHandler() {
-    const { path, method } = this.__request;
-    try {
-      const middleware = this.__pathQueues[path][method][
-        this.__middlewareIndex
-      ];
-      if (middleware) {
-        middleware(this.__request, this.__response, this.__next.bind(this));
-      }
-    } catch (err) {
-      //where there is no middleware function under that path, i.e. user has not provided via app.get/app.post etc...
-      const middleware = this.__secondaryUseQueue[this.__middlewareIndex];
-      if (middleware) {
-        middleware(this.__request, this.__response, this.__next.bind(this));
-      } else {
-        if (!this.__responseSent) this.__noPathFound();
-      }
+    const { path: reqPath, method: reqMethod } = this.__request;
+    const middlewareIndex = this.__middlewareIndex++;
+    const middlewareCount = this.__middlewareQueue.length;
+    if (middlewareIndex >= middlewareCount) return this.__noPathFound();
+    const {
+      path: middlewarePath,
+      method: middelwareMethod,
+      func: middlewareFunc
+    } = this.__middlewareQueue[middlewareIndex];
+    const req = this.__request;
+    const res = this.__response;
+    const next = this.__nextMiddlewareHandler.bind(this);
+    if (middlewarePath === null) middlewareFunc(req, res, next);
+    else if (middlewarePath === reqPath && middelwareMethod === reqMethod) {
+      middlewareFunc(req, res, next);
+    } else if (middlewareFunc) {
+      this.__nextMiddlewareHandler();
     }
-  }
-  __next() {
-    this.__middlewareIndex++;
-    this.__nextMiddlewareHandler();
-  }
-  __conveyRequestHandler() {
-    //start the counter at 0 when a new request comes in
-    this.__middlewareIndex = 0;
-    this.__nextMiddlewareHandler();
   }
   __queueHttpMethodMiddleware(path, method, middleware) {
-    const { __pathQueues, __intialQueue } = this;
-    if (!__pathQueues[path]) {
-      __pathQueues[path] = { [method]: [].concat(__intialQueue) };
-    }
-    if (!__pathQueues[path][method]) {
-      __pathQueues[path][method] = [].concat(__intialQueue);
-    }
-    __pathQueues[path][method].push(middleware);
+    const { __middlewareQueue } = this;
+    __middlewareQueue.push({ path, method, func: middleware });
   }
   use(middleware) {
-    const { __intialQueue, __pathQueues, __secondaryUseQueue } = this;
-    __secondaryUseQueue.push(middleware);
-    const hasPathQueues = Object.keys(__pathQueues).length > 0;
-    if (!hasPathQueues) __intialQueue.push(middleware);
-    else {
-      for (path in __pathQueues) {
-        for (method in __pathQueues[path]) {
-          __pathQueues[path][method].push(middleware);
-        }
-      }
-    }
+    this.__queueHttpMethodMiddleware(null, null, middleware);
   }
   get(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, "GET", middleware);
+    this.__queueHttpMethodMiddleware(path, 'GET', middleware);
   }
   post(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, "POST", middleware);
+    this.__queueHttpMethodMiddleware(path, 'POST', middleware);
   }
   patch(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, "PATCH", middleware);
+    this.__queueHttpMethodMiddleware(path, 'PATCH', middleware);
   }
   put(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, "PUT", middleware);
+    this.__queueHttpMethodMiddleware(path, 'PUT', middleware);
   }
   delete(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, "DELETE", middleware);
+    this.__queueHttpMethodMiddleware(path, 'DELETE', middleware);
   }
 }
 
@@ -115,11 +95,11 @@ function convey() {
 }
 
 convey.bodyParser = function bodyParser(request, response, next) {
-  let bodyData = "";
-  request.on("data", chunk => {
+  let bodyData = '';
+  request.on('data', (chunk) => {
     bodyData += chunk.toString();
   });
-  request.on("end", () => {
+  request.on('end', () => {
     request.body = JSON.parse(bodyData);
     next();
   });

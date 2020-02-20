@@ -11,3 +11,5 @@ My own implementation of express
 - [ ] queries for endpoints
 - [ ] error handling middleware can be added
 - [ ] Routers
+
+//where there is no middleware function under that path, i.e. user has not provided via app.get/app.post etc...
