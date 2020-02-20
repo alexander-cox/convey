@@ -6,12 +6,8 @@ class Convey {
     this.__request;
     this.__response;
     //__initialQueue contains starting middleware functions before paths are provided by the user
-    this.__intialQueue = [];
     //__pathQueues contain middleware functions provided by user under { '/path': { ['METHOD']: [middFunc1, middFunc2] } }
-    this.__pathQueues = {};
     this.__middlewareQueue = [];
-    //__secondaryUseQueue constains middleware functions passed to .use that can be used when there is no path to take
-    this.__secondaryUseQueue = [];
     this.responseSent = false;
     this.__server = http.createServer((request, response) => {
       this.__request = request;
@@ -28,7 +24,6 @@ class Convey {
         return this.__response;
       };
       this.__response.status = (statusCode) => {
-        // console.log(this);
         this.__response.statusCode = statusCode;
         return this.__response;
       };
