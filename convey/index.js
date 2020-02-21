@@ -5,8 +5,6 @@ class Convey {
     this.__middlewareIndex = 0;
     this.__request;
     this.__response;
-    //__initialQueue contains starting middleware functions before paths are provided by the user
-    //__pathQueues contain middleware functions provided by user under { '/path': { ['METHOD']: [middFunc1, middFunc2] } }
     this.__middlewareQueue = [];
     this.responseSent = false;
     this.__server = http.createServer((request, response) => {
@@ -61,27 +59,27 @@ class Convey {
       this.__nextMiddlewareHandler();
     }
   }
-  __queueHttpMethodMiddleware(path, method, middleware) {
+  __queueMiddleware(path, method, middleware) {
     const { __middlewareQueue } = this;
     __middlewareQueue.push({ path, method, func: middleware });
   }
   use(middleware) {
-    this.__queueHttpMethodMiddleware(null, null, middleware);
+    this.__queueMiddleware(null, null, middleware);
   }
   get(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, 'GET', middleware);
+    this.__queueMiddleware(path, 'GET', middleware);
   }
   post(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, 'POST', middleware);
+    this.__queueMiddleware(path, 'POST', middleware);
   }
   patch(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, 'PATCH', middleware);
+    this.__queueMiddleware(path, 'PATCH', middleware);
   }
   put(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, 'PUT', middleware);
+    this.__queueMiddleware(path, 'PUT', middleware);
   }
   delete(path, middleware) {
-    this.__queueHttpMethodMiddleware(path, 'DELETE', middleware);
+    this.__queueMiddleware(path, 'DELETE', middleware);
   }
 }
 
