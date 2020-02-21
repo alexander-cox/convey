@@ -1,4 +1,5 @@
 const http = require('http');
+const Router = require('./Router');
 
 class Convey {
   constructor() {
@@ -97,5 +98,7 @@ convey.bodyParser = function bodyParser(request, response, next) {
     next();
   });
 };
+
+convey.Router = Router;
 
 module.exports = convey;
