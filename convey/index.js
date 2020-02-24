@@ -62,6 +62,10 @@ class Convey {
   }
   __queueMiddleware(path, method, middleware) {
     const { __middlewareQueue } = this;
+    if (typeof middleware !== 'function')
+      throw new Error(
+        `Middleware must be a function: instead got ${middleware.toString()}`
+      );
     __middlewareQueue.push({ path, method, func: middleware });
   }
   use(middleware) {
