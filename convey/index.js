@@ -36,9 +36,9 @@ class Convey {
   }
   __noPathFound() {
     //default, when no path has been set by the user
-    const { path, method } = this.__request;
+    const { url, method } = this.__request;
     this.__response.status(404);
-    this.__response.send(`Cannot ${method} ${path}`);
+    this.__response.send(`Cannot ${method} ${url}`);
   }
   __nextMiddlewareHandler() {
     const { path: reqPath, method: reqMethod } = this.__request;
@@ -47,14 +47,22 @@ class Convey {
     if (middlewareIndex >= middlewareCount) return this.__noPathFound();
     const {
       path: middlewarePath,
-      method: middelwareMethod,
+      method: middlewareMethod,
       func: middlewareFunc
     } = this.__middlewareQueue[middlewareIndex];
+    // console.log(middlewareMethod);
     const req = this.__request;
     const res = this.__response;
     const next = this.__nextMiddlewareHandler.bind(this);
-    if (middlewarePath === null) middlewareFunc(req, res, next);
-    else if (middlewarePath === reqPath && middelwareMethod === reqMethod) {
+
+    const secondPortionReqPath = reqPath.slice(middlewarePath.length);
+    if (middlewareMethod === null) {
+      //remove path for router
+      let newPath = secondPortionReqPath.length ? secondPortionReqPath : '/';
+      req.path = newPath;
+      middlewareFunc(req, res, next);
+    } else if (middlewarePath === null) middlewareFunc(req, res, next);
+    else if (middlewarePath === reqPath && middlewareMethod === reqMethod) {
       middlewareFunc(req, res, next);
     } else if (middlewareFunc) {
       this.__nextMiddlewareHandler();
@@ -62,14 +70,23 @@ class Convey {
   }
   __queueMiddleware(path, method, middleware) {
     const { __middlewareQueue } = this;
+    try {
+      var argType = middleware.toString();
+    } catch {
+      var argType = middleware;
+    }
     if (typeof middleware !== 'function')
-      throw new Error(
-        `Middleware must be a function: instead got ${middleware.toString()}`
-      );
+      throw new Error(`Middleware must be a function: instead got ${argType}`);
     __middlewareQueue.push({ path, method, func: middleware });
   }
-  use(middleware) {
-    this.__queueMiddleware(null, null, middleware);
+  use(...args) {
+    if (args.length > 1) {
+      var [path, middleware] = args;
+    } else {
+      var [middleware] = args;
+      var path = null;
+    }
+    this.__queueMiddleware(path, null, middleware);
   }
   get(path, middleware) {
     this.__queueMiddleware(path, 'GET', middleware);

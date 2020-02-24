@@ -1,8 +1,18 @@
 const convey = require('./convey');
+
+const app = convey();
 const apiRouter = convey.Router();
 
 apiRouter.get('/apples', (req, res) => {
-  console.log('on api Router for /apples');
+  res.status(200).send(`you made it to ${req.url}`);
 });
 
-module.exports = apiRouter;
+apiRouter.post('/dogs', (req, res) => {
+  res.status(201).send(`you made it to ${req.url}`);
+});
+
+app.use('/api', apiRouter);
+
+app.listen(3210, () => {
+  console.log('convey app listening on 3210');
+});

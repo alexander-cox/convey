@@ -1,8 +1,6 @@
 const convey = require('./convey');
 
 const app = convey();
-const apiRouter = require('./testing-convey-router');
-
 app.use((req, res, next) => {
   console.log('use middleware');
   next();
@@ -18,8 +16,6 @@ app.get('/hello', (req, res, next) => {
 app.get('/hello', (req, res) => {
   console.log('moreeeee');
 });
-
-app.get('/api', apiRouter);
 
 app.post('/hello', function(req, res) {
   const body = req.body;
