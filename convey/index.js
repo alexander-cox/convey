@@ -16,7 +16,14 @@ class Convey {
       this.__responseSent = false;
       //some parsing of the req/res as it comes in...
       this.__response.send = data => {
-        this.__response.write(data);
+        if (typeof data === 'object') {
+          this.__response.setHeader('Content-Type', 'application/json');
+          const stringyData = JSON.stringify(data);
+          this.__response.write(stringyData);
+        } else {
+          this.__response.setHeader('Content-Type', 'text/html');
+          this.__response.write(data);
+        }
         this.__response.end();
         this.__responseSent = true;
         return this.__response;
@@ -89,11 +96,16 @@ function convey() {
 
 convey.bodyParser = function bodyParser(request, response, next) {
   let bodyData = '';
+  let hasBody = false;
   request.on('data', chunk => {
+    hasBody = true;
     bodyData += chunk.toString();
   });
   request.on('end', () => {
-    request.body = JSON.parse(bodyData);
+    console.log('end', bodyData);
+    if (hasBody) {
+      request.body = JSON.parse(bodyData);
+    }
     next();
   });
 };
