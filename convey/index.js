@@ -15,7 +15,7 @@ class Convey {
       //for default pathNotFound response, __responseSent is required to prevent repeat calls
       this.__responseSent = false;
       //some parsing of the req/res as it comes in...
-      this.__response.send = data => {
+      this.__response.send = (data) => {
         if (typeof data === 'object') {
           this.__response.setHeader('Content-Type', 'application/json');
           const stringyData = JSON.stringify(data);
@@ -28,7 +28,7 @@ class Convey {
         this.__responseSent = true;
         return this.__response;
       };
-      this.__response.status = statusCode => {
+      this.__response.status = (statusCode) => {
         this.__response.statusCode = statusCode;
         return this.__response;
       };
@@ -54,7 +54,7 @@ class Convey {
     const {
       path: middlewarePath,
       method: middlewareMethod,
-      func: middlewareFunc
+      func: middlewareFunc,
     } = this.__middlewareQueue[middlewareIndex];
     const req = this.__request;
     const res = this.__response;
@@ -97,7 +97,7 @@ function convey() {
 convey.bodyParser = function bodyParser(request, response, next) {
   let bodyData = '';
   let hasBody = false;
-  request.on('data', chunk => {
+  request.on('data', (chunk) => {
     hasBody = true;
     bodyData += chunk.toString();
   });
