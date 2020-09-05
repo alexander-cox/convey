@@ -67,8 +67,7 @@ class Convey {
     }
   }
   __queueMiddleware(path, method, middleware) {
-    const { __middlewareQueue } = this;
-    __middlewareQueue.push({ path, method, func: middleware });
+    this.__middlewareQueue.push({ path, method, func: middleware });
   }
   use(middleware) {
     this.__queueMiddleware(null, null, middleware);

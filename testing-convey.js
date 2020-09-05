@@ -13,7 +13,7 @@ app.get('/hello', (req, res) => {
   console.log('moreeeee');
 });
 
-app.post('/hello', function(req, res) {
+app.post('/hello', function (req, res) {
   const body = req.body;
   const stringyBody = JSON.stringify({ body });
   res.send(stringyBody);
@@ -24,6 +24,8 @@ app.patch('/cookie', (req, res, next) => {
   res.send({ cookie });
 });
 
-app.listen(3210, () => {
-  console.log('convey app listening on 3210');
+const PORT = 9090;
+
+app.listen(PORT, () => {
+  console.log(`convey app listening on ${PORT}`);
 });

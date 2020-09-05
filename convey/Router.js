@@ -3,8 +3,7 @@ class Router {
     this.__middlewareQueue = [];
   }
   __queueMiddleware(path, method, middleware) {
-    const { __middlewareQueue } = this;
-    __middlewareQueue.push({ path, method, func: middleware });
+    this__middlewareQueue.push({ path, method, func: middleware });
   }
   use(middleware) {
     this.__queueMiddleware(null, null, middleware);
@@ -26,6 +25,6 @@ class Router {
   }
 }
 
-module.exports = function() {
+module.exports = function () {
   return new Router();
 };
