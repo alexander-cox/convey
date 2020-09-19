@@ -6,7 +6,7 @@ const http = require('http');
 
 let app;
 
-describe.only('app methods', () => {
+describe('app methods', () => {
   beforeEach(() => {
     app = convey();
   });
