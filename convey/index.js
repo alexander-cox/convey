@@ -9,15 +9,21 @@ function createServer() {
     const next = () => {
       this.__next(req, res);
     };
-    const { func, method, path } = this.__middlewareQueue[index];
-    if (
-      (method === req.method && path === req.url) ||
-      (method === 'USE' && path === req.url)
-    ) {
-      func(req, res, next);
-    } else if (method === req.method && path === undefined) {
-      func(req, res, next);
-    } else this.__next(req, res);
+    const nextMiddleware = this.__middlewareQueue[index];
+    if (!nextMiddleware) {
+      res.statusCode = 404;
+      res.end(`Cannot ${req.method} ${req.url}`);
+    } else {
+      const { func, method, path } = nextMiddleware;
+      if (
+        (method === req.method && path === req.url) ||
+        (method === 'USE' && path === req.url)
+      ) {
+        func(req, res, next);
+      } else if (method === req.method && path === undefined) {
+        func(req, res, next);
+      } else this.__next(req, res);
+    }
   };
 
   const methods = ['get', 'post', 'patch', 'put', 'delete', 'use'];

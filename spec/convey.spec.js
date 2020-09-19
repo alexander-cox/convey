@@ -2,6 +2,7 @@ const http = require('http');
 const { expect } = require('chai');
 const sinon = require('sinon');
 const convey = require('../convey');
+const request = require('supertest');
 
 describe('convey', () => {
   let app;
@@ -32,8 +33,19 @@ describe('convey', () => {
     });
   });
   describe('Default error responses', () => {
-    it.skip('should respond with a default 404 error if endpoint is not handled', () => {
-      app.get();
+    it('should respond with a default 404 error if endpoint is not handled', () => {
+      const methods = ['get', 'post', 'put', 'patch', 'delete'];
+      const requestPromises = methods.map((method) => {
+        return request(app)
+          [method](`/${method}/path`)
+          .expect(404)
+          .then((res) => {
+            expect(res.text).to.equal(
+              `Cannot ${method.toUpperCase()} /${method}/path`
+            );
+          });
+      });
+      return Promise.all(requestPromises);
     });
   });
 });
