@@ -9,19 +9,29 @@ function createServer() {
     const next = () => {
       this.__next(req, res);
     };
-    const { func: middleware, method, path } = this.__middlewareQueue[index];
+    const { func, method, path } = this.__middlewareQueue[index];
     if (
       (method === req.method && path === req.url) ||
       (method === 'USE' && path === req.url)
     ) {
-      middleware(req, res, next);
+      func(req, res, next);
+    } else if (method === req.method && path === undefined) {
+      func(req, res, next);
     } else this.__next(req, res);
   };
 
   const methods = ['get', 'post', 'patch', 'put', 'delete', 'use'];
 
   methods.forEach((method) => {
-    server[method] = function (path, middleware) {
+    server[method] = function (...args) {
+      let path;
+      let middleware;
+      if (args.length === 2) {
+        middleware = args[1];
+        path = args[0];
+      } else {
+        middleware = args[0];
+      }
       this.__middlewareQueue.push({
         path,
         func: middleware,

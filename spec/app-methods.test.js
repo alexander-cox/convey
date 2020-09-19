@@ -145,5 +145,25 @@ describe('app methods', () => {
           expect(useMiddlewareSpy.called).to.be.true;
         });
     });
+    it('methods should not require a path to invoke middleware function', () => {
+      const methods = ['get', 'post', 'put', 'patch', 'delete'];
+      const middlewareSpies = {};
+      methods.forEach((method) => {
+        const spy = sinon.spy((_, res) => {
+          res.end();
+        });
+        app[method](spy);
+        middlewareSpies[method] = spy;
+      });
+      const requestPromises = methods.map((method) => {
+        return request(app)[method]('/a-random-path');
+      });
+      return Promise.all(requestPromises).then(() => {
+        methods.forEach((method) => {
+          const middleware = middlewareSpies[method];
+          expect(middleware.calledOnce).to.be.true;
+        });
+      });
+    });
   });
 });
