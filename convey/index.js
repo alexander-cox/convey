@@ -35,6 +35,7 @@ class Convey {
       this.__request.path = request.url;
       this.__nextMiddlewareHandler();
     });
+    // this.address = this.__server.address;
   }
 
   listen(PORT, callback) {
@@ -90,23 +91,27 @@ class Convey {
 }
 
 function convey() {
-  return new Convey();
-}
+  function createServer() {
+    const server = http.createServer();
+    server.__middlewareQueue = [];
 
-convey.bodyParser = function bodyParser(request, response, next) {
-  let bodyData = '';
-  let hasBody = false;
-  request.on('data', (chunk) => {
-    hasBody = true;
-    bodyData += chunk.toString();
-  });
-  request.on('end', () => {
-    console.log('end', bodyData);
-    if (hasBody) {
-      request.body = JSON.parse(bodyData);
-    }
-    next();
-  });
-};
+    const methods = ['get', 'post', 'patch', 'put', 'delete'];
+    methods.forEach((method) => {
+      server[method] = function (path, middleware) {
+        this.__middlewareQueue.push({
+          path,
+          func: middleware,
+          method: method.toUpperCase(),
+        });
+      };
+    });
+    server.on('request', function (req, res) {
+      const middleware = this.__middlewareQueue[0].func;
+      middleware(req, res);
+    });
+    return server;
+  }
+  return createServer();
+}
 
 module.exports = convey;
