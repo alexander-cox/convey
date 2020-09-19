@@ -47,5 +47,16 @@ describe('convey', () => {
       });
       return Promise.all(requestPromises);
     });
+    it('should respond with 500 internal server error if it catches an error within middleware', () => {
+      app.use(() => {
+        throw new Error();
+      });
+      return request(app)
+        .get('/')
+        .expect(500)
+        .then((res) => {
+          expect(res.text).to.equal('Internal Server Error');
+        });
+    });
   });
 });

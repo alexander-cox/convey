@@ -165,5 +165,16 @@ describe('app methods', () => {
         });
       });
     });
+    it('use methods should be invoked regardless of the path if no path provided to app.use', () => {
+      const middlewareSpy = sinon.spy((_, res) => {
+        res.end();
+      });
+      app.use(middlewareSpy);
+      return request(app)
+        .get('/a-random-path')
+        .then(() => {
+          expect(middlewareSpy.calledOnce).to.be.true;
+        });
+    });
   });
 });

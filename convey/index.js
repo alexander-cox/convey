@@ -6,10 +6,9 @@ function createServer() {
   server.__middlewareIndex = 0;
   server.__next = function (req, res) {
     const index = this.__middlewareIndex++;
-    const next = () => {
-      this.__next(req, res);
-    };
+    const next = () => this.__next(req, res);
     const nextMiddleware = this.__middlewareQueue[index];
+
     if (!nextMiddleware) {
       res.statusCode = 404;
       res.end(`Cannot ${req.method} ${req.url}`);
@@ -17,11 +16,16 @@ function createServer() {
       const { func, method, path } = nextMiddleware;
       if (
         (method === req.method && path === req.url) ||
-        (method === 'USE' && path === req.url)
+        (method === 'USE' && path === req.url) ||
+        (method === 'USE' && path === undefined) ||
+        (method === req.method && path === undefined)
       ) {
-        func(req, res, next);
-      } else if (method === req.method && path === undefined) {
-        func(req, res, next);
+        try {
+          func(req, res, next);
+        } catch (e) {
+          res.statusCode = 500;
+          res.end('Internal Server Error');
+        }
       } else this.__next(req, res);
     }
   };
