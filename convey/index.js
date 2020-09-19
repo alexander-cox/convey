@@ -4,7 +4,24 @@ function createServer() {
   const server = http.createServer();
   server.__middlewareQueue = [];
   server.__middlewareIndex = 0;
+
   server.__next = function (req, res) {
+    res.status = function (code) {
+      res.statusCode = code;
+      return res;
+    };
+
+    res.send = function (info) {
+      if (!res.statusCode) res.status(200);
+      if (info instanceof Object) {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify(info));
+      } else {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.end(info);
+      }
+    };
+
     const index = this.__middlewareIndex++;
     const next = () => this.__next(req, res);
     const nextMiddleware = this.__middlewareQueue[index];

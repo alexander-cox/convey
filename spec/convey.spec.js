@@ -15,7 +15,7 @@ describe('convey', () => {
     app.close();
   });
 
-  describe('convey', () => {
+  describe('convey basics', () => {
     it('should have a server property set to an instance of http server', (done) => {
       expect(app).to.be.an.instanceOf(http.Server);
       done();
@@ -57,6 +57,89 @@ describe('convey', () => {
         .then((res) => {
           expect(res.text).to.equal('Internal Server Error');
         });
+    });
+  });
+  describe('response object methods', () => {
+    describe('res.status()', () => {
+      it('status: should set the status of a response', () => {
+        app.use((_, res) => {
+          res.status(201);
+          res.end();
+        });
+        return request(app).get('/').expect(201);
+      });
+      it('status: should return the response to allow chaining', () => {
+        let output;
+        let responseObj;
+        app.use((_, res) => {
+          responseObj = res;
+          output = res.status(201);
+          res.end();
+        });
+        return request(app)
+          .get('/')
+          .then(() => {
+            expect(output).to.be.an.instanceOf(http.ServerResponse);
+            expect(output).to.deep.equal(responseObj);
+          });
+      });
+    });
+    describe('res.send()', () => {
+      it('send: should end the response with 200 status code by default', () => {
+        app.use((_, res) => {
+          res.send();
+        });
+        return request(app).get('/').expect(200);
+      });
+      it('send: should not change the status code if already set', () => {
+        app.use((_, res) => {
+          res.status(201);
+          res.send();
+        });
+        return request(app).get('/').expect(201);
+      });
+      it('send: should send text data provided as an argument', () => {
+        app.use((_, res) => {
+          res.status(201);
+          res.send('hello world');
+        });
+        return request(app)
+          .get('/')
+          .expect(201)
+          .then((res) => {
+            expect(res.text).to.equal('hello world');
+          });
+      });
+      it('send: should set content-type header to text/html', () => {
+        app.use((_, res) => {
+          res.status(201);
+          res.send('hello world');
+        });
+        return request(app)
+          .get('/')
+          .expect(201)
+          .then((res) => {
+            expect(res.headers['content-type']).to.equal(
+              'text/html; charset=utf-8'
+            );
+          });
+      });
+      it('send: should set content-type header to application/json and stringify if info is an object', () => {
+        const body = { msg: 'hello world' };
+        app.use((_, res) => {
+          res.status(201);
+          res.send(body);
+        });
+        return request(app)
+          .get('/')
+          .expect(201)
+          .then((res) => {
+            expect(res.headers['content-type']).to.equal(
+              'application/json; charset=utf-8'
+            );
+            expect(res.body).to.deep.equal(body);
+          });
+      });
     });
   });
 });
