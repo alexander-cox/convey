@@ -66,5 +66,45 @@ describe('app methods', () => {
         expect(spy.callCount).to.equal(methods.length);
       });
     });
+    it('middleware should be invoked in order provided to convey providing they call the next callback', () => {
+      const spyOne = sinon.spy((req, res, next) => {
+        next();
+      });
+      const spyTwo = sinon.spy((req, res, next) => {
+        next();
+      });
+      const spyThree = sinon.spy((req, res) => {
+        res.end();
+      });
+      app.use('/', spyOne);
+      app.use('/', spyTwo);
+      app.use('/', spyThree);
+      return request(app)
+        .post('/')
+        .then(() => {
+          sinon.assert.callOrder(spyOne, spyTwo, spyThree);
+        });
+    });
+    it('middlware chain should skip to the next function in the chain if method is not correct', () => {
+      const spy = sinon.spy((_, res) => {
+        res.end();
+      });
+      app.delete('/', spy);
+      app.use('/', (_, res) => {
+        res.end();
+      });
+      const incorrectMethods = ['get', 'post', 'put', 'patch'];
+      const requestPromises = incorrectMethods.map((method) => {
+        return request(app)[method]('/');
+      });
+      return Promise.all(requestPromises)
+        .then(() => {
+          expect(spy.callCount).to.equal(0);
+          return request(app).delete('/');
+        })
+        .then(() => {
+          expect(spy.callCount).to.equal(1);
+        });
+    });
   });
 });
