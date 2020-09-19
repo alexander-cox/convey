@@ -5,6 +5,7 @@ function createServer() {
   server.__middlewareQueue = [];
 
   const methods = ['get', 'post', 'patch', 'put', 'delete'];
+
   methods.forEach((method) => {
     server[method] = function (path, middleware) {
       this.__middlewareQueue.push({
@@ -14,6 +15,14 @@ function createServer() {
       });
     };
   });
+
+  server.use = function (path, middleware) {
+    this.__middlewareQueue.push({
+      path,
+      func: middleware,
+    });
+  };
+
   server.on('request', function (req, res) {
     const middleware = this.__middlewareQueue[0].func;
     middleware(req, res);

@@ -4,9 +4,8 @@ const sinon = require('sinon');
 const request = require('supertest');
 const http = require('http');
 
-let app;
-
 describe('app methods', () => {
+  let app;
   beforeEach(() => {
     app = convey();
   });
@@ -53,6 +52,19 @@ describe('app methods', () => {
           expect(spyArgTwo).to.be.instanceOf(http.ServerResponse);
           expect(spy.calledOnce).to.be.true;
         });
+    });
+    it('use: should be a method invoked regardless of methods sent', () => {
+      const spy = sinon.spy((req, res) => {
+        res.end();
+      });
+      app.use('/', spy);
+      const methods = ['get', 'post', 'put', 'patch', 'delete'];
+      const requestPromises = methods.map((method) => {
+        return request(app)[method]('/');
+      });
+      return Promise.all(requestPromises).then(() => {
+        expect(spy.callCount).to.equal(methods.length);
+      });
     });
   });
 });
