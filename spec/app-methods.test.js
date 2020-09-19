@@ -106,5 +106,44 @@ describe('app methods', () => {
           expect(spy.callCount).to.equal(1);
         });
     });
+    it('should only invoke the middleware when path is matched', () => {
+      const spy = sinon.spy((_, res) => {
+        res.end();
+      });
+      app.put('/correct_path', spy);
+      app.use('/', (_, res) => {
+        res.end();
+      });
+      return request(app)
+        .put('/')
+        .then(() => {
+          expect(spy.called).to.be.false;
+          return request(app).put('/correct_path');
+        })
+        .then(() => {
+          expect(spy.called).to.be.true;
+        });
+    });
+    it('should only invoke use middleware when path is matched', () => {
+      const useMiddlewareSpy = sinon.spy((_, __, next) => {
+        next();
+      });
+      app.use('/correct_path', useMiddlewareSpy);
+      app.patch('/correct_path', (_, res) => {
+        res.end();
+      });
+      app.use('/', (_, res) => {
+        res.end();
+      });
+      return request(app)
+        .patch('/')
+        .then(() => {
+          expect(useMiddlewareSpy.called).to.be.false;
+          return request(app).patch('/correct_path');
+        })
+        .then(() => {
+          expect(useMiddlewareSpy.called).to.be.true;
+        });
+    });
   });
 });

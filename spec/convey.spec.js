@@ -31,4 +31,9 @@ describe('convey', () => {
       });
     });
   });
+  describe('Default error responses', () => {
+    it.skip('should respond with a default 404 error if endpoint is not handled', () => {
+      app.get();
+    });
+  });
 });

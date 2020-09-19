@@ -9,8 +9,11 @@ function createServer() {
     const next = () => {
       this.__next(req, res);
     };
-    const { func: middleware, method } = this.__middlewareQueue[index];
-    if (method === req.method || method === 'USE') {
+    const { func: middleware, method, path } = this.__middlewareQueue[index];
+    if (
+      (method === req.method && path === req.url) ||
+      (method === 'USE' && path === req.url)
+    ) {
       middleware(req, res, next);
     } else this.__next(req, res);
   };
