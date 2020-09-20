@@ -196,4 +196,46 @@ describe('convey', () => {
       });
     });
   });
+  describe('request object properties', () => {
+    describe('req.query', () => {
+      it('should provide a query object on the req object set to an empty object by default', () => {
+        app.use((req, res) => {
+          expect(req.query).to.deep.equal({});
+          res.send();
+        });
+        app.use((err, req, res, next) => {
+          console.log('TEST: THIS ERR SHOULD NOT SHOW', err);
+        });
+        return request(app).get('/').expect(200);
+      });
+      it('should set a single key value pair onto the query object', () => {
+        app.use((req, res) => {
+          expect(req.query).to.deep.equal({ key: 'value' });
+          res.send();
+        });
+        app.use((err, req, res, next) => {
+          console.log('TEST: THIS ERR SHOULD NOT SHOW', err);
+        });
+        return request(app).get('/test?key=value').expect(200);
+      });
+      it('should handle multiple key value pairs from the request url', () => {
+        app.use((req, res) => {
+          expect(req.query).to.deep.equal({
+            key: 'value',
+            anotherKey: 'anotherValue',
+            differentKey: 'differentValue',
+          });
+          res.send();
+        });
+        app.use((err, req, res, next) => {
+          console.log('TEST: THIS ERR SHOULD NOT SHOW', err);
+        });
+        return request(app)
+          .get(
+            '/test?key=value&anotherKey=anotherValue&differentKey=differentValue'
+          )
+          .expect(200);
+      });
+    });
+  });
 });

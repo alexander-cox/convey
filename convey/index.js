@@ -1,4 +1,5 @@
 const http = require('http');
+const { setQueryObject } = require('./utils');
 
 function createServer() {
   const server = http.createServer();
@@ -21,6 +22,9 @@ function createServer() {
         res.end(info);
       }
     };
+
+    req.query = {};
+    setQueryObject(req);
 
     const index = this.__middlewareIndex++;
     const next = (e) => {
