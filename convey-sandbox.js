@@ -2,7 +2,7 @@ const convey = require('./convey');
 
 const app = convey();
 
-app.use(convey.bodyParser);
+// app.use(convey.bodyParser);
 
 app.get('/hello', (req, res, next) => {
   res.status(200).send('well hello there!!!!');

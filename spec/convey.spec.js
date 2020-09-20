@@ -59,6 +59,60 @@ describe('convey', () => {
         });
     });
   });
+  describe('Error middleware', () => {
+    it('should be invoked when an error happens in standard middleware', () => {
+      app.use(() => {
+        throw new Error('issue');
+      });
+      app.use((err, req, res, next) => {
+        res.statusCode = 200;
+        res.end('shh there was no problem');
+      });
+      return request(app)
+        .get('/')
+        .expect(200)
+        .then((res) => {
+          expect(res.text).to.equal('shh there was no problem');
+        });
+    });
+    it('should be invoked when next is invoked with an argument', () => {
+      app.use((_, __, next) => {
+        next(new Error('middleware issue'));
+      });
+      app.use((err, _, res, __) => {
+        res.statusCode = 400;
+        res.end(`ok maybe there is a problem: ${err.message}`);
+      });
+      return request(app)
+        .get('/')
+        .expect(400)
+        .then((res) => {
+          expect(res.text).to.equal(
+            'ok maybe there is a problem: middleware issue'
+          );
+        });
+    });
+    it('should allow for errors to propogate down a middleware chain', () => {
+      app.use((_, __, next) => {
+        next(new Error('middleware issue'));
+      });
+      app.use((_, __, res, next) => {
+        next(new Error('there has been an error higher up the chain'));
+      });
+      app.use((err, _, res, __) => {
+        res.statusCode = 400;
+        res.end(`ok maybe there is a problem: ${err.message}`);
+      });
+      return request(app)
+        .get('/')
+        .expect(400)
+        .then((res) => {
+          expect(res.text).to.equal(
+            'ok maybe there is a problem: there has been an error higher up the chain'
+          );
+        });
+    });
+  });
   describe('response object methods', () => {
     describe('res.status()', () => {
       it('status: should set the status of a response', () => {
